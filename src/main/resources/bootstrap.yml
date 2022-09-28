@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: car-toll-api
+  cloud:
+    config:
+      uri: http://config-srv:8888

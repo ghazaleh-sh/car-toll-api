@@ -1,0 +1,30 @@
+version: '3.3'
+services:
+  neo-baam-car-toll-api:
+    image: repo.sadad.co.ir/repository/baam-docker-registry/neo-baam-car-toll-api:BUILD_NUMBER
+    hostname: car-toll-api-srv
+    container_name: ${CONTAINER_NAME}
+    networks:
+      neo-baam:
+        aliases:
+          - car-toll-api-srv
+    ports:
+      - 8514:8514
+      - 1514:1514
+    tty: true
+    extra_hosts:
+      - "cache:192.168.53.58"
+      - "cache1:192.168.53.58"
+      - "config-srv:192.168.53.73"
+    volumes:
+      - /var/log/car-toll-api:/var/log/car-toll-api
+      - /opt/security/car-toll-api/:/opt/security/car-toll-api
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - JVM_OPTS=-Dfile.encoding=UTF8
+    build: .
+    working_dir: /
+    command: [ "/usr/bin/java", "-jar", "/car-toll-api-0.0.1-SNAPSHOT.jar" ]
+networks:
+  neo-baam:
+    driver: bridge
