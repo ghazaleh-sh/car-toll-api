@@ -27,4 +27,6 @@ public class InquiryDetailDto {
     private String inquiryType;
     private String paymentStatus;
     private String plateNo;
+    private String inquiryDate;
+    private String inquiryTime;
 }

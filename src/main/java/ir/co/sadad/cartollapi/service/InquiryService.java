@@ -70,9 +70,10 @@ public interface InquiryService {
      * @param request
      * @param ssn
      * @param authToken
+     * @param userAgent user agent of who calls this service, it helps to determine who is calling this service and send sms(TAN) based on userAgent , also it's help in Baamban
      * @return
      */
-    WagePaymentResponseDto wagePayment(WagePaymentRequestDto request, String ssn, String authToken);
+    WagePaymentResponseDto wagePayment(WagePaymentRequestDto request, String ssn, String authToken,String userAgent);
 
     /**
      * verify of tan code that send to user

@@ -40,4 +40,12 @@ public class HeaderManager {
         headers.add("x-user-authorization", xUserAuth);
         return headers;
     }
+
+    public static MultiValueMap<String, String> getMultiHeader(String token, String xUserAuth , String userAgent) {
+        MultiValueMap<String, String> headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, token);
+        headers.add("x-user-authorization", xUserAuth);
+        headers.add(HttpHeaders.USER_AGENT, userAgent);
+        return headers;
+    }
 }

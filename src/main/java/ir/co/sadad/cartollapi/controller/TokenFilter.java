@@ -14,6 +14,7 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
 
 import static ir.co.sadad.cartollapi.service.util.Constants.SSN;
 
@@ -29,13 +30,14 @@ public class TokenFilter implements Filter {
                          ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
-        if (((HttpServletRequest) servletRequest).getRequestURI().contains("car-toll-api/api.html")||
-                ((HttpServletRequest) servletRequest).getRequestURI() .contains( "swagger")||
-                ((HttpServletRequest) servletRequest).getRequestURI() .contains( "swagger-resources")||
-                ((HttpServletRequest) servletRequest).getRequestURI() .contains( "actuator")||
-                ((HttpServletRequest) servletRequest).getRequestURI() .contains( "v2")||
-                ((HttpServletRequest) servletRequest).getRequestURI() .contains( "webjars")||
-                ((HttpServletRequest) servletRequest).getRequestURI() .contains( "v3")) {
+        if (((HttpServletRequest) servletRequest).getRequestURI().contains("car-toll-api/api.html") ||
+                ((HttpServletRequest) servletRequest).getRequestURI().contains("swagger") ||
+                ((HttpServletRequest) servletRequest).getRequestURI().contains("swagger-resources") ||
+                ((HttpServletRequest) servletRequest).getRequestURI().contains("actuator") ||
+                ((HttpServletRequest) servletRequest).getRequestURI().contains("v2") ||
+                ((HttpServletRequest) servletRequest).getRequestURI().contains("webjars") ||
+                ((HttpServletRequest) servletRequest).getRequestURI().contains("v3") ||
+                checkSsnInHeader(req)) {
             filterChain.doFilter(servletRequest, servletResponse);
 
         } else {
@@ -74,5 +76,11 @@ public class TokenFilter implements Filter {
             throw new IllegalArgumentException();
         }
         return customHeader;
+    }
+
+    private boolean checkSsnInHeader(HttpServletRequest req) {
+        return Collections.list(req.getHeaderNames())
+                .stream().anyMatch(h -> h.contains(SSN));
+
     }
 }

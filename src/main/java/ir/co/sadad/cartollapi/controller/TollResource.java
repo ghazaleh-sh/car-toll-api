@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 import static ir.co.sadad.cartollapi.service.util.Constants.SSN;
+import static ir.co.sadad.cartollapi.service.util.Constants.USER_AGENT;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -173,10 +174,11 @@ public class TollResource {
     public ResponseEntity<WagePaymentResponseDto> wagePayment(
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authToken,
             @RequestHeader(SSN) String ssn,
+            @RequestHeader(USER_AGENT) String userAgent,
             @RequestBody
             @Valid WagePaymentRequestDto request
     ) {
-        WagePaymentResponseDto response = inquiryService.wagePayment(request, ssn, authToken);
+        WagePaymentResponseDto response = inquiryService.wagePayment(request, ssn, authToken,userAgent);
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }

@@ -74,6 +74,7 @@ public class SadadNajiServicesImpl implements SadadNajiServices {
                             res.bodyToMono(SadadNajiErrorDto.class)
                                     .handle((error, sink) ->
                                             {
+                                                log.error("violation aggregation exception : {}", error);
                                                 sink.error(new SadadNajiException(error.getError().getMessage()
                                                         , HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS));
 
@@ -82,6 +83,7 @@ public class SadadNajiServicesImpl implements SadadNajiServices {
                     )
                     .onStatus(HttpStatus::is5xxServerError, res ->
                     {
+                        log.error("violation aggregation exception : {}", res);
                         throw new SadadNajiException("inquiry.error.reverse.failed", res.statusCode());
                     })
                     .bodyToMono(ViolationAggregationData.class);
@@ -121,6 +123,7 @@ public class SadadNajiServicesImpl implements SadadNajiServices {
                             res.bodyToMono(SadadNajiErrorDto.class)
                                     .handle((error, sink) ->
                                             {
+                                                log.error("violation list exception : {}", error);
                                                 sink.error(new SadadNajiException(error.getError().getMessage()
                                                         , HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS));
 
@@ -129,6 +132,7 @@ public class SadadNajiServicesImpl implements SadadNajiServices {
                     )
                     .onStatus(HttpStatus::is5xxServerError, res ->
                     {
+                        log.error("violation list exception : {}", res);
                         throw new SadadNajiException("inquiry.error.reverse.failed", res.statusCode());
                     })
                     .bodyToMono(ViolationListData.class);
@@ -173,6 +177,7 @@ public class SadadNajiServicesImpl implements SadadNajiServices {
                             res.bodyToMono(SadadNajiErrorDto.class)
                                     .handle((error, sink) ->
                                             {
+                                                log.error("violation image exception : {}", error);
                                                 sink.error(new SadadNajiException(error.getError().getMessage()
                                                         , HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS));
 
@@ -181,6 +186,7 @@ public class SadadNajiServicesImpl implements SadadNajiServices {
                     )
                     .onStatus(HttpStatus::is5xxServerError, res ->
                     {
+                        log.error("violation image exception : {}", res);
                         throw new SadadNajiException("inquiry.error.reverse.failed", res.statusCode());
                     })
                     .bodyToMono(ViolationImageData.class);

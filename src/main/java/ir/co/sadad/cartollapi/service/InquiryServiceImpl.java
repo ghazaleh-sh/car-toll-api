@@ -4,12 +4,14 @@ import ir.co.sadad.cartollapi.dtos.*;
 import ir.co.sadad.cartollapi.entities.*;
 import ir.co.sadad.cartollapi.enumurations.*;
 import ir.co.sadad.cartollapi.exception.CarTollException;
+import ir.co.sadad.cartollapi.exception.RestException;
 import ir.co.sadad.cartollapi.exception.SSOException;
 import ir.co.sadad.cartollapi.exception.SadadNajiException;
 import ir.co.sadad.cartollapi.providers.naji.SadadNajiServices;
 import ir.co.sadad.cartollapi.providers.otp.OTPServices;
 import ir.co.sadad.cartollapi.providers.payment.PaymentServices;
 import ir.co.sadad.cartollapi.repositories.*;
+import ir.co.sadad.cartollapi.service.util.Utility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -77,6 +79,8 @@ public class InquiryServiceImpl implements InquiryService {
                 inquiryResult.setPaymentStatus("نامشخص");
                 inquiryResult.setRequest(savedRequest);
                 inquiryResult.setPlateNo(request.getPlateNo());
+                inquiryResult.setInquiryDate(Utility.getCurrentJalaliDate());
+                inquiryResult.setInquiryTime(Utility.getCurrentJalaliTime());
                 inquiryResultRepository.saveAndFlush(inquiryResult);
 
                 changeDebitCount(savedRequest, -1);
@@ -318,7 +322,8 @@ public class InquiryServiceImpl implements InquiryService {
 
     public WagePaymentResponseDto wagePayment(WagePaymentRequestDto request,
                                               String ssn,
-                                              String authToken) {
+                                              String authToken,
+                                              String userAgent) {
 
         Request savedRequest;
         UserPlate userPlate = userPlateRepository.findByUser_NationalCodeAndPlate_PlateNo(ssn, request.getPlateNo()).orElseThrow(
@@ -350,7 +355,7 @@ public class InquiryServiceImpl implements InquiryService {
         body.setPaymentDescription(request.getPaymentDescription());
 
         try {
-            NajiPaymentDto.Response response = paymentServices.paymentService(body, authToken);
+            NajiPaymentDto.Response response = paymentServices.paymentService(body, authToken, userAgent);
 
             if (response != null && response
                     .getResultSet()
@@ -381,14 +386,16 @@ public class InquiryServiceImpl implements InquiryService {
 
                 return res;
 
-            } else if (response != null)
+            } else if (response != null) {
+                log.error("Exception in payment : {}", response);
                 throw new CarTollException(response
                         .getResultSet()
                         .getInnerResponse()
                         .getResponseMessage(), HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
-
-            else
+            } else {
+                log.error("Exception in payment : GENERAL EXCEPTION");
                 throw new CarTollException("core.wage.payment.exception", HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
+            }
 
         } catch (Exception e) {
             if (e instanceof HttpStatusCodeException && ((HttpStatusCodeException) e).getStatusCode().equals(HttpStatus.PRECONDITION_FAILED)) {
@@ -416,11 +423,11 @@ public class InquiryServiceImpl implements InquiryService {
                 return res;
 
             }
-
             savedRequest.setRequestStatus(RequestStatus.WAGE_FAILED);
             requestRepository.saveAndFlush(savedRequest);
-            log.error("wage payment exception: " + e.getMessage());
-            throw new CarTollException(e.getMessage(), HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
+            String exceptionMessage = e instanceof RestException ? ((RestException) e).getMessage() : e.getMessage();
+            log.error("wage payment exception: " + exceptionMessage);
+            throw new CarTollException(exceptionMessage, HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
         }
 
     }

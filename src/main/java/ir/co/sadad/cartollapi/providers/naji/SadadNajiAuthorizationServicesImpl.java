@@ -98,7 +98,7 @@ public class SadadNajiAuthorizationServicesImpl implements SadadNajiAuthorizatio
             callService(headers, requestBody);
 
         } catch (Exception e) {
-            log.error("token SERVICE ERROR IS >>>>>>>>> " + e);
+            log.error("NAJI token SERVICE ERROR IS >>>>>>>>> " + e);
             throw new CarTollException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -116,12 +116,12 @@ public class SadadNajiAuthorizationServicesImpl implements SadadNajiAuthorizatio
             callService(headers, requestBody);
 
         } catch (Exception e) {
-            log.error("token SERVICE ERROR IS >>>>>>>>> " + e);
+            log.error("NAJI token SERVICE ERROR IS >>>>>>>>> " + e);
             throw new CarTollException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    private void callService(HttpHeaders headers, MultiValueMap<String, String> requestBody)  {
+    private void callService(HttpHeaders headers, MultiValueMap<String, String> requestBody) {
 
 
         token = webClient
@@ -133,9 +133,11 @@ public class SadadNajiAuthorizationServicesImpl implements SadadNajiAuthorizatio
                 .retrieve()
                 .onStatus(HttpStatus::isError, res ->
                         res.bodyToMono(SadadNajiErrorDto.class)
-                                .handle((error, sink) ->
-                                        sink.error(new SadadNajiException(error.getError().getMessage()
-                                                , HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS))
+                                .handle((error, sink) -> {
+                                            log.error("exception in token of NAJI system : {}", error);
+                                            sink.error(new SadadNajiException(error.getError().getMessage()
+                                                    , HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS));
+                                        }
                                 )
                 )
                 .bodyToMono(NajiTokenResponseDto.class)

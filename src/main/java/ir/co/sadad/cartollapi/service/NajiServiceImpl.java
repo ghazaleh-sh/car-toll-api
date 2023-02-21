@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 import static ir.co.sadad.cartollapi.service.util.Constants.*;
 
@@ -99,8 +102,13 @@ public class NajiServiceImpl implements NajiService {
                 plateInfos.add(plateInfo);
             });
 
-            response.setUserNationalCode(savedUserPlate.get(0).getUser().getNationalCode());
-            response.setUserDebitCount(savedUserPlate.get(0).getUser().getDebitCount());
+            if (savedUserPlate.isEmpty()) {
+                response.setUserNationalCode(ssn);
+                response.setUserDebitCount(0);
+            } else {
+                response.setUserNationalCode(savedUserPlate.get(0).getUser().getNationalCode());
+                response.setUserDebitCount(savedUserPlate.get(0).getUser().getDebitCount());
+            }
 
             response.setPlateInfo(plateInfos);
             return response;
@@ -112,9 +120,6 @@ public class NajiServiceImpl implements NajiService {
 
     @Transactional
     public PlateDeleteResponseDto deletePlate(String plateNo, String ssn) {
-
-        if (!plateNo.matches("^[0-9]{8,9}$"))
-            throw new CarTollException("plate.no.pattern.not.valid", HttpStatus.BAD_REQUEST);
 
         UserPlate userPlate = getUserPlateFromPlateNo(plateNo, ssn);
 
@@ -408,6 +413,9 @@ public class NajiServiceImpl implements NajiService {
 
 
     private void checkPlateNoFormat(String plateNo, String type) {
+
+        if (!plateNo.matches("^[0-9]{8,9}$"))
+            throw new CarTollException("plate.no.pattern.not.valid", HttpStatus.BAD_REQUEST);
 
         if (type.equals(PlateType.CAR.toString()))
             if (plateNo.length() != PLATE_NO_CAR)

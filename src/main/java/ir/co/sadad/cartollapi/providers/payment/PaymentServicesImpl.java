@@ -41,7 +41,7 @@ public class PaymentServicesImpl implements PaymentServices {
 
     @Override
     @SneakyThrows
-    public NajiPaymentDto.Response paymentService(PaymentRequestDto request, String authToken) {
+    public NajiPaymentDto.Response paymentService(PaymentRequestDto request, String authToken, String userAgent) {
         request.setInstructedCurrency(wageCurrency)
                 .setMerchantId(Integer.valueOf(wageMerchantId))
                 .setTerminalId(Integer.valueOf(wageTerminalId));
@@ -49,11 +49,20 @@ public class PaymentServicesImpl implements PaymentServices {
         return webClient
                 .post()
                 .uri(wagePaymentUrl)
-                .headers(h -> h.addAll(HeaderManager.getMultiHeader(paymentAuthorizationServices.getAccessToken(), authToken)))
+                .headers(h -> h.addAll(HeaderManager.getMultiHeader(paymentAuthorizationServices.getAccessToken(), authToken, userAgent)))
                 .body(Mono.just(request), new ParameterizedTypeReference<PaymentRequestDto>() {
                 })
                 .retrieve()
-                .onStatus(HttpStatus::isError, res -> {
+                .onStatus(httpStatus -> httpStatus.equals(HttpStatus.BAD_REQUEST), res ->
+                        res.bodyToMono(NajiPaymentDto.Response.MetaData.class)
+                                .log()
+                                .handle((error, sink) -> {
+                                            log.error("exception in payment : {}", error);
+                                            sink.error(new RestException(res.statusCode(), error.getNotifications().get(0).getMessage()));
+                                        }
+                                )
+                ).onStatus(HttpStatus::isError, res -> {
+                    log.error("Payment service Message : {}", res);
                     throw new RestException(res.statusCode());
                 })
                 .bodyToMono(NajiPaymentDto.Response.class)
@@ -72,6 +81,7 @@ public class PaymentServicesImpl implements PaymentServices {
                 })
                 .retrieve()
                 .onStatus(HttpStatus::isError, res -> {
+                    log.error("exception in tan verify : {}", res);
                     throw new RestException(res.statusCode());
                 })
                 .bodyToMono(NajiPaymentDto.Response.class)
@@ -90,6 +100,7 @@ public class PaymentServicesImpl implements PaymentServices {
                 })
                 .retrieve()
                 .onStatus(HttpStatus::isError, res -> {
+                    res.toEntity(String.class).subscribe(entity -> log.error("exception in reverse : {}", entity));
                     throw new RestException(res.statusCode());
                 })
                 .bodyToMono(NajiPaymentDto.ReverseResponse.class)

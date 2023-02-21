@@ -7,10 +7,13 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
@@ -20,6 +23,7 @@ import javax.net.ssl.SSLException;
  * config of web client for rest services
  */
 @Configuration
+@Slf4j
 public class WebClientConfig {
 
     @Bean
@@ -41,6 +45,22 @@ public class WebClientConfig {
 
         return webClientBuilder
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .filter(logRequest())
+                .filter(logResponse())
                 .build();
+    }
+
+    private static ExchangeFilterFunction logRequest() {
+        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+            log.warn("Request >>>>>>>>>>>>>: {} {}", clientRequest.method(), clientRequest.url());
+            return Mono.just(clientRequest);
+        });
+    }
+
+    private static ExchangeFilterFunction logResponse() {
+        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
+            log.warn("Response status >>>>>>>>>>>>>: {}", clientResponse.statusCode());
+            return Mono.just(clientResponse);
+        });
     }
 }

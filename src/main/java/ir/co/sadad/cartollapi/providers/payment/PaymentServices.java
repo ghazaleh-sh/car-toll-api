@@ -14,9 +14,10 @@ public interface PaymentServices {
      *
      * @param request   request for service
      * @param authToken auth token
+     * @param userAgent
      * @return payment response
      */
-    NajiPaymentDto.Response paymentService(PaymentRequestDto request, String authToken);
+    NajiPaymentDto.Response paymentService(PaymentRequestDto request, String authToken,String userAgent);
 
     /**
      * method for tan verify

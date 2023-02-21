@@ -50,13 +50,15 @@ public class OTPServicesImpl implements OTPServices {
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, res ->
                         res.bodyToMono(SSOResponseDto.class)
-                                .handle((error, sink) -> sink.error(new SSOException(translateError(error.getError_description()),
-                                        error.getError_description(),
-                                        res.statusCode()))
+                                .handle((error, sink) -> {
+                                            log.error("exception in send otp message : {}", error);
+                                            sink.error(new SSOException(translateError(error.getError_description()), error.getError_description(), res.statusCode()));
+                                        }
                                 )
                 )
                 .onStatus(HttpStatus::is5xxServerError, res ->
                 {
+                    log.error("send OTP Message : {}", res);
                     throw new SSOException("core.otp.service.exception", HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
                 })
                 .bodyToMono(SSOResponseDto.class);
@@ -90,13 +92,15 @@ public class OTPServicesImpl implements OTPServices {
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, res ->
                         res.bodyToMono(SSOResponseDto.class)
-                                .handle((error, sink) -> sink.error(new SSOException(translateError(error.getError_description()),
-                                        error.getError_description(),
-                                        res.statusCode()))
+                                .handle((error, sink) -> {
+                                            log.error("exception in verify otp : {}", error);
+                                            sink.error(new SSOException(translateError(error.getError_description()), error.getError_description(), res.statusCode()));
+                                        }
                                 )
                 )
                 .onStatus(HttpStatus::is5xxServerError, res ->
                 {
+                    log.error("Verify OTP Message : {}", res);
                     throw new SSOException("core.otp.service.exception", HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS);
                 })
                 .bodyToMono(SSOResponseDto.class);

@@ -70,18 +70,18 @@ public class PaymentAuthorizationServicesImpl implements PaymentAuthorizationSer
                     .retrieve()
                     .onStatus(HttpStatus::is4xxClientError, res ->
                             res.bodyToMono(SSOResponseDto.class)
-                                    .handle((error, sink) -> sink.error(new SSOException(error.getError_description(),
-                                            error.getError_description(),
-                                            res.statusCode()))
-                                    )
+                                    .handle((error, sink) -> {
+                                        log.error("exception in Token Service of payment : {}", error);
+                                        sink.error(new SSOException(error.getError_description(), error.getError_description(), res.statusCode()));
+                                    })
                     )
                     .bodyToMono(TokenDto.class)
                     .block();
             if (token != null)
                 validDate = System.currentTimeMillis() + token.getExpires_in() * 1000;
         } catch (HttpStatusCodeException e) {
-            log.warn("refreshToken exception responseBodyAsString " + e.getResponseBodyAsString());
-            log.warn("exception on calling service", e);
+            log.error("refreshToken exception responseBodyAsString " + e.getResponseBodyAsString());
+            log.error("exception on calling service", e);
         }
     }
 }
